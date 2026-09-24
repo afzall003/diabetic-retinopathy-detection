@@ -1,0 +1,24 @@
+# Multi-stage build: compile the Vite app, then serve the static output
+# with nginx. This is what actually runs in production -- `npm run dev`
+# (what you've been using locally) is a development server, not meant
+# for real deployment (slower, includes hot-reload overhead, not hardened).
+
+FROM node:20-slim AS build
+WORKDIR /app
+COPY web/package.json web/package-lock.json* ./
+RUN npm install
+COPY web/ ./
+
+# Baked in at BUILD time, not runtime -- Vite env vars are compiled into
+# the static JS bundle. If the API's address ever changes, this image
+# needs rebuilding, not just restarting.
+ARG VITE_API_BASE_URL
+ARG VITE_USE_MOCK_API=false
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+ENV VITE_USE_MOCK_API=${VITE_USE_MOCK_API}
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.web.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
