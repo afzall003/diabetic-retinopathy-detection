@@ -1,0 +1,40 @@
+# --- Python ---
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# --- Environment / secrets ---
+.env
+web/.env
+!web/.env.example
+
+# --- Dataset (large, download separately -- see README) ---
+data/
+
+# --- Model artifacts (large, regenerate by retraining -- see README) ---
+outputs/
+outputs_cnn/
+outputs_cnn_v2/
+outputs_cnn_v3/
+outputs_smoke/
+
+# --- SQLite persistence (local runtime data, not source) ---
+db_data/
+
+# --- Node / Vite (web/) ---
+web/node_modules/
+web/dist/
+web/.vite/
+
+# --- OS/editor cruft ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- Docker ---
+# (Dockerfiles and docker-compose.yml ARE tracked -- only build
+# artifacts/caches would go here if any ever show up)

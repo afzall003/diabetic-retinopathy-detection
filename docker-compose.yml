@@ -1,0 +1,52 @@
+services:
+  tf-serving:
+    image: tensorflow/serving
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./outputs/saved_model:/models/dr_model
+    environment:
+      - MODEL_NAME=dr_model
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8001:8000"
+    depends_on:
+      - tf-serving
+    volumes:
+      # Bind mount so the SQLite history database lives on the host disk,
+      # not inside the container -- survives `docker compose down`,
+      # rebuilds, and restarts, instead of resetting every time.
+      # Named db_data, not data, since ./data already holds the APTOS
+      # training dataset -- keeping them separate avoids confusion.
+      - ./db_data:/app/data
+    environment:
+      # Using host.docker.internal instead of the 'tf-serving' service name:
+      # Compose's internal DNS (service-name resolution) can be flaky on
+      # some Docker Desktop + WSL2 setups. host.docker.internal is a
+      # special hostname handled separately (closer to a static hosts-file
+      # entry than dynamic DNS) and reaches tf-serving via its port already
+      # published to the host (8501:8501 above) -- more reliable here.
+      - TF_SERVING_ENDPOINT=http://host.docker.internal:8501/v1/models/dr_model:predict
+      - DB_PATH=/app/data/history.db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "8502:8501"
+    depends_on:
+      - api
+    environment:
+      # Same fix as api's endpoint above, and for the same reason -- this
+      # also relied on service-name DNS ('api') which is unreliable here.
+      # Reaches the api container via its published host port (8001) instead.
+      - API_ENDPOINT=http://host.docker.internal:8001/predict
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

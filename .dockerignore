@@ -1,0 +1,9 @@
+venv/
+data/
+notebooks/
+outputs/saved_model/
+outputs/tb_logs/
+*.pyc
+__pycache__/
+.git
+.gitignore

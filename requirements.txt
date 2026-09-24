@@ -1,0 +1,14 @@
+tensorflow>=2.15,<2.17
+numpy
+pandas
+opencv-python-headless
+scikit-learn
+matplotlib
+albumentations
+tensorflow-serving-api
+requests
+pillow
+fastapi
+uvicorn[standard]
+python-multipart
+streamlit

@@ -1,0 +1,19 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements-api.txt .
+RUN pip install --no-cache-dir -r requirements-api.txt
+
+# Only what the API actually needs: itself, the explainability module it
+# imports from, and the trained checkpoint. Not the full src/ tree
+# (training/data/evaluation code has no business being in this image).
+COPY api/ ./api/
+COPY src/__init__.py ./src/__init__.py
+COPY src/explainability/ ./src/explainability/
+COPY outputs/checkpoint.keras ./outputs/checkpoint.keras
+
+ENV CHECKPOINT_PATH=./outputs/checkpoint.keras
+
+EXPOSE 8000
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
